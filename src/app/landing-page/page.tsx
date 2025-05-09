@@ -9,7 +9,6 @@ import { ArrowRight, LogIn, Shield, Calendar, Clock, ChevronRight } from 'lucide
 export default function LandingPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showUserLogin, setShowUserLogin] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   
   // Update time every minute
@@ -59,18 +58,7 @@ export default function LandingPage() {
                   <LogIn className="h-4 w-4 mr-2" /> Sign In
                 </button>
               </div>
-              
-              <div className="mt-12 flex items-center text-sm text-gray-500">
-                <button 
-                  onClick={() => setShowAdminLogin(true)}
-                  className="flex items-center hover:text-white transition-colors"
-                >
-                  <Shield className="h-4 w-4 mr-1" />
-                  Admin Access
-                </button>
               </div>
-            </div>
-            
             <div className="hidden lg:block relative">
               {/* Animated clock design */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border-2 border-white/10 flex items-center justify-center">
@@ -302,7 +290,6 @@ export default function LandingPage() {
       )}
       
       <UserLoginModal isOpen={showUserLogin} onClose={() => setShowUserLogin(false)} />
-      <AdminLoginModal isOpen={showAdminLogin} onClose={() => setShowAdminLogin(false)} />
     </div>
   );
 }
