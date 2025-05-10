@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Calendar, Clock, Search, MapPin, ChevronRight, PlusCircle, Bell, Menu, X, User, LogIn } from 'lucide-react';
 
 // Types
-export type Category = 'competition' | 'community'| 'workshop' | 'social' | 'tech' | 'lecture';
+export type Category = 'competition' | 'community' | 'workshop' | 'social' | 'tech' | 'lecture';
 
 export type Campus = {
   id: number;
@@ -30,36 +31,31 @@ export const fetchToken = async () => {
   formData.append('client_id', process.env.NEXT_PUBLIC_42_UID || '');
   formData.append('client_secret', process.env.FORTY_TWO_SECRET || '');
 
-  const response = await fetch('https://api.intra.42.fr/oauth/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: formData,
-  });
+  try {
+    const response = await axios.post('https://api.intra.42.fr/oauth/token', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
 
-  if (!response.ok) {
+    return response.data.access_token;
+  } catch (error) {
+    console.error('Failed to fetch token:', error);
     throw new Error('Failed to fetch token');
   }
-
-  const data = await response.json();
-  return data.access_token;
 };
 
 export const fetchCampuses = async () => {
   try {
     const token = await fetchToken();
-    const response = await fetch('https://api.intra.42.fr/v2/campus', {
+    const response = await axios.get('https://api.intra.42.fr/v2/campus', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch campuses');
-    }
-
-    return await response.json() as Campus[];
+    return response.data as Campus[];
+    console.log('Fetched campuses:', response.data);
   } catch (error) {
     console.error('Error fetching campuses:', error);
     return [];
@@ -69,18 +65,14 @@ export const fetchCampuses = async () => {
 export const fetchCampusEvents = async (campusId: number) => {
   try {
     const token = await fetchToken();
-    const response = await fetch(`https://api.intra.42.fr/v2/campus/${campusId}/events`, {
+    const response = await axios.get(`https://api.intra.42.fr/v2/campus/${campusId}/events`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch events for campus ${campusId}`);
-    }
+    const apiEvents = response.data;
 
-    const apiEvents = await response.json();
-    
     // Transform API events to match our Event type
     return apiEvents.map((event: any) => ({
       id: event.id,

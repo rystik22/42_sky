@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Search, Bell, Menu, X, LogIn, Shield } from "lucide-react";
-import { AdminLoginModal } from "../../app/admin/admin_login";
-import LoginPage from "./user_login/page"
+import { AdminLoginModal } from "../admin/admin_login";
+import LoginPage from "../../components/custom/user_login/page"
 
 
 export const Header = () => {
