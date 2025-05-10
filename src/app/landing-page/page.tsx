@@ -1,10 +1,136 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Navbar, events, EventModal, CategoryBadge, Event, Category } from '../../components/custom/landing_utils';
+import { Event, Category } from './landing_utils';
 import { Footer } from '../../components/custom/footer';
+import { Header } from '../../components/custom/header';
 import { UserLoginModal } from '../../components/custom/user_login';
-import { AdminLoginModal } from '../admin/admin_login';
-import { ArrowRight, LogIn, Shield, Calendar, Clock, ChevronRight } from 'lucide-react';
+import { ArrowRight, LogIn, Calendar, Clock, ChevronRight } from 'lucide-react';
+
+// Define CategoryBadge component that was missing
+const CategoryBadge = ({ category }: { category: "workshop" | "competition" | "social" | "lecture" | string }) => {
+  const colors: Record<string, string> = {
+    "workshop": "bg-blue-500/20 text-blue-400",
+    "competition": "bg-purple-500/20 text-purple-400",
+    "social": "bg-emerald-500/20 text-emerald-400",
+    "lecture": "bg-amber-500/20 text-amber-400",
+  };
+
+  return (
+    <span className={`text-xs px-2 py-1 rounded-full ${colors[category] || "bg-gray-500/20 text-gray-400"}`}>
+      {category}
+    </span>
+  );
+};
+
+// Define events array that was missing
+// Import necessary types
+
+// Define events array with initial sample data
+const events: Event[] = [
+  {
+    id: 1,
+    title: "Introduction to AI",
+    category: "workshop",
+    date: "May 15",
+    time: "14:00 - 16:00",
+    location: "Lab 1",
+    description: "Learn the basics of artificial intelligence and machine learning.",
+    image: "/images/events/ai-workshop.jpg"
+  },
+  {
+    id: 2,
+    title: "Hackathon Finals",
+    category: "competition",
+    date: "May 18",
+    time: "09:00 - 18:00",
+    location: "Main Hall",
+    description: "Final presentations of the annual hackathon projects.",
+    image: "/images/events/hackathon.jpg"
+  },
+  {
+    id: 3,
+    title: "Community Mixer",
+    category: "social",
+    date: "May 20",
+    time: "19:00 - 21:00",
+    location: "Lounge Area",
+    description: "Network with fellow students and industry professionals.",
+    image: "/images/events/mixer.jpg"
+  },
+  {
+    id: 4,
+    title: "Industry Expert Talk",
+    category: "lecture",
+    date: "May 22",
+    time: "13:00 - 14:30",
+    location: "Auditorium",
+    description: "Hear from leading experts in the tech industry.",
+    image: "/images/events/expert-talk.jpg"
+  },
+  {
+    id: 5,
+    title: "Web Development Basics",
+    category: "workshop",
+    date: "May 25",
+    time: "15:00 - 17:00",
+    location: "Lab 2",
+    description: "Introduction to HTML, CSS, and JavaScript fundamentals.",
+    image: "/images/events/web-dev.jpg"
+  },
+  {
+    id: 6,
+    title: "Design Challenge",
+    category: "competition",
+    date: "May 27",
+    time: "10:00 - 16:00",
+    location: "Design Studio",
+    description: "Put your UI/UX skills to the test in this design competition.",
+    image: "/images/events/design-challenge.jpg"
+  }
+];
+
+// This function can be used in your component to fetch real events
+const fetchEventsFromApi = async () => {
+  try {
+    // First get access token using the client credentials flow
+    const tokenResponse = await fetch('https://api.intra.42.fr/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        grant_type: 'client_credentials',
+        client_id: process.env.NEXT_PUBLIC_42_UID,
+        client_secret: process.env.FORTY_TWO_SECRET,
+      }),
+    });
+    
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+    
+    // First get the campus ID (you can store this in state/context to avoid refetching)
+    const campusResponse = await fetch('https://api.intra.42.fr/v2/campus', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    
+    
+    const campuses = await campusResponse.json();
+    const abuDhabiCampus = campuses.find((campus: { name: string }) => campus.name === "Abu Dhabi");
+    
+    if (!abuDhabiCampus) {
+      throw new Error("Abu Dhabi campus not found");
+    }
+    
+    // Now fetch events for this campus
+    // Implement the rest of the function here
+    return []; // Return empty array for now
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
+};
 
 export default function LandingPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -29,10 +155,10 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
-      
+          
       {/* Hero Section with Creative Design */}
       <section className="pt-24 overflow-hidden">
+        <Header />
         <div className="max-w-6xl mx-auto px-4 py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative z-20">
@@ -139,7 +265,7 @@ export default function LandingPage() {
           </div>
           
           {/* Event orbit display */}
-          <div className="relative h-screen/2 flex items-center justify-center mb-16">
+          <div className="mt-96 relative h-screen/2 flex items-center justify-center mb-96">
             {/* Center element */}
             <div className="absolute w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center z-20">
               <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center">
@@ -163,7 +289,7 @@ export default function LandingPage() {
                 const y = Math.sin(angle * Math.PI / 180) * radius;
                 const zIndex = angle > 180 ? 10 : 5;
                 setPosition({ x, y, zIndex });
-              }, [currentTime, index, events.length]);
+              }, [currentTime, index]);
 
               return (
                 <div 
@@ -173,10 +299,10 @@ export default function LandingPage() {
                     transform: `translate(${position.x}px, ${position.y}px)`,
                     zIndex: position.zIndex
                   }}
-                  onClick={() => setSelectedEvent({ ...event, category: event.category as Category })}
+                  onClick={() => setSelectedEvent(event)}
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <CategoryBadge category={event.category as Category} />
+                    <CategoryBadge category={event.category} />
                     <span className="text-xs text-white/50">{event.date}</span>
                   </div>
                   <h3 className="font-medium text-white mb-2">{event.title}</h3>
@@ -195,10 +321,10 @@ export default function LandingPage() {
               <div 
                 key={event.id}
                 className="bg-gray-900/80 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all hover:scale-105 cursor-pointer hover:border-white/30"
-                onClick={() => setSelectedEvent({ ...event, category: event.category as Category })}
+                onClick={() => setSelectedEvent(event)}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <CategoryBadge category={event.category as Category} />
+                  <CategoryBadge category={event.category} />
                   <span className="text-xs text-white/50">{event.date}</span>
                 </div>
                 <h3 className="font-medium text-white mb-2">{event.title}</h3>
@@ -283,12 +409,7 @@ export default function LandingPage() {
       </section>
       
       <Footer />
-      
-      {/* Modals */}
-      {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-      )}
-      
+            
       <UserLoginModal isOpen={showUserLogin} onClose={() => setShowUserLogin(false)} />
     </div>
   );
