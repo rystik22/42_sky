@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Search, Bell, Menu, X, LogIn, Shield } from "lucide-react";
-import { AdminLoginModal } from "../admin/admin_login";
+import { AdminLoginModal } from "../admin/page";
 import LoginPage from "../../components/custom/user_login/page"
 
 
@@ -37,8 +37,8 @@ export const Header = () => {
               alt="42 Events Logo"
               className="h-10 w-40 rounded-sm shadow-lg shadow-white-500/20 transition-all duration-300 group-hover:shadow-white-500/40"
             />
-            <span className="font-bold text-lg tracking-wider bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent drop-shadow-sm hover:drop-shadow-lg transition-all duration-300 animate-pulse-slow font-mono">
-              EVENTS
+            <span className="font-bold text-2xl font-stretch-50% tracking-wider bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent drop-shadow-sm hover:drop-shadow-lg transition-all duration-300 animate-pulse-slow font-mono">
+              SKY
             </span>
           </a>
 
@@ -55,15 +55,16 @@ export const Header = () => {
             <a href="/events" className="text-sm text-gray-300 hover:text-white">
               Browse
             </a>
-            <a href="/create" className="text-sm text-gray-300 hover:text-white">
+            {/* <a href="/create" className="text-sm text-gray-300 hover:text-white">
               Create
-            </a>
-            <button
+            </a> */}
+            <a 
+              href="/admin"
               className="flex items-center text-sm text-gray-300 hover:text-white"
             >
               <Shield className="h-4 w-4 mr-1" />
               Admin
-            </button>
+            </a>
             <button className="p-1.5 rounded-full hover:bg-white/10">
               <Bell className="h-4 w-4 text-gray-300" />
             </button>

@@ -12,7 +12,7 @@ export const Footer = () => {
               alt="42 Events Logo"
               className="h-10 w-40 rounded-sm shadow-lg shadow-white-500/20 transition-all duration-300 group-hover:shadow-white-500/40"
               />
-              <span className="font-bold text-lg tracking-wider bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent drop-shadow-sm hover:drop-shadow-lg transition-all duration-300 animate-pulse-slow font-mono">EVENTS</span>
+              <span className="font-bold text-2xl tracking-wider bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent drop-shadow-sm hover:drop-shadow-lg transition-all duration-300 animate-pulse-slow font-stretch-50%">SKY</span>
             </a>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
