@@ -1,91 +1,75 @@
 import axios from 'axios'
 import { Event } from '../types/types'
 
-// Helper function to format date from API
-export const formatDateString = (dateString: string) => {
-  const date = new Date(dateString)
-  const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
-  return date.toLocaleDateString('en-US', options)
-}
-
-// Helper function to format time range from API
-export const formatTimeRange = (beginAt: string, endAt: string) => {
-  const startDate = new Date(beginAt)
-  const endDate = new Date(endAt)
-  
-  const startHours = startDate.getHours().toString().padStart(2, '0')
-  const startMinutes = startDate.getMinutes().toString().padStart(2, '0')
-  const endHours = endDate.getHours().toString().padStart(2, '0')
-  const endMinutes = endDate.getMinutes().toString().padStart(2, '0')
-  
-  return `${startHours}:${startMinutes} - ${endHours}:${endMinutes}`
-}
-
-// Map API event kind to category
-export const mapKindToCategory = (kind: string): string => {
-  const kindMap: Record<string, string> = {
-    rush: "competition",
-    association: "social",
-    other: "lecture"
-  }
-  
-  return kindMap[kind] || kind
-}
-
 // Format time to show hours:minutes
 export const formatTime = (date: Date) => {
   return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`
 }
 
-// Function to fetch events from the 42 API
+// Map API event kind to category for consistent styling
+export const mapKindToCategory = (kind: string): string => {
+  const kindMap: Record<string, string> = {
+    rush: "competition",
+    association: "social",
+    other: "lecture",
+    meet_up: "social",
+    hackathon: "competition",
+    piscine: "workshop",
+    event: "social"
+  }
+  
+  return kindMap[kind] || kind
+}
+
+// Function to fetch events from our API endpoint
 export const fetchEventsFromApi = async (): Promise<Event[]> => {
   try {
-    // Fetch all campuses using the client credentials directly
-    const campusesResponse = await axios.get("https://api.intra.42.fr/v2/campus", {
-      auth: {
-        username: process.env.NEXT_PUBLIC_42_UID || '',
-        password: process.env.FORTY_TWO_SECRET || ''
-      }
-    });
-
-    const campusesData = campusesResponse.data;
-    const abuDhabiCampus = campusesData.find((campus: any) => campus.name === "Abu Dhabi");
-
-    if (!abuDhabiCampus) {
-      console.error("Abu Dhabi campus not found");
-      return [];
-    }
-
-    // Fetch events for Abu Dhabi campus using the same auth method
-    const eventsResponse = await axios.get(`https://api.intra.42.fr/v2/campus/${abuDhabiCampus.id}/events`, {
-      auth: {
-        username: process.env.NEXT_PUBLIC_42_UID || '',
-        password: process.env.FORTY_TWO_SECRET || ''
-      }
-    });
-
-    const eventsData = eventsResponse.data;
+    // Use the events API endpoint we created
+    const response = await axios.get('/api/events')
     
-    // Transform API events to match our Event type
-    return eventsData.map((event: any) => ({
+    if (!response.data || !response.data.events) {
+      console.error("Invalid response from events API")
+      return []
+    }
+    
+    // Get the formatted events from response
+    const { events } = response.data
+    
+    // Add images based on event category and ensure all required fields
+    return events.map((event: any) => ({
       id: event.id,
-      title: event.name,
-      category: mapKindToCategory(event.kind),
-      date: formatDateString(event.begin_at),
-      time: formatTimeRange(event.begin_at, event.end_at),
+      title: event.title,
+      category: mapKindToCategory(event.category), // Map to our category system
+      date: event.date,
+      time: event.time,
       location: event.location,
       description: event.description,
-      image: "/images/events/default-event.jpg", // Default image as API doesn't provide images
-    })).sort((a: Event, b: Event) => {
-      // Sort by date (assuming date format is "MMM DD")
-      const dateA = new Date(a.date + ", 2025");
-      const dateB = new Date(b.date + ", 2025");
-      return dateA.getTime() - dateB.getTime();
-    });
+      image: getEventImage(event.category), // Generate image based on category
+      beginAt: event.beginAt,
+      endAt: event.endAt,
+      maxAttendees: event.maxAttendees,
+      currentAttendees: event.currentAttendees
+    }));
   } catch (error) {
     console.error("Error fetching events:", error);
-    return [];
+    return fallbackEvents;
   }
+}
+
+// Helper function to get appropriate image based on event category
+const getEventImage = (category: string): string => {
+  const imageMap: Record<string, string> = {
+    workshop: "/images/events/workshop.jpg",
+    competition: "/images/events/competition.jpg",
+    social: "/images/events/social.jpg", 
+    lecture: "/images/events/lecture.jpg",
+    meet_up: "/images/events/meetup.jpg",
+    hackathon: "/images/events/hackathon.jpg",
+    piscine: "/images/events/piscine.jpg",
+    event: "/images/events/event.jpg"
+  }
+  
+  return imageMap[category] || "/images/events/default-event.jpg"
 }
 
 // Sample fallback events if API fetch fails

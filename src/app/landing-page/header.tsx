@@ -59,7 +59,6 @@ export const Header = () => {
               Create
             </a>
             <button
-              onClick={() => setShowAdminLogin(true)}
               className="flex items-center text-sm text-gray-300 hover:text-white"
             >
               <Shield className="h-4 w-4 mr-1" />

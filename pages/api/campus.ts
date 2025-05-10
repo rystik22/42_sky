@@ -4,22 +4,46 @@ import axios from 'axios';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
+    // Get access token
     const tokenRes = await axios.post('https://api.intra.42.fr/oauth/token', {
       grant_type: 'client_credentials',
-      client_id: 'u-s4t2ud-6f3cdacca8aaf46b80c284df7a5e2bbe5ecbd917793c49f49c8ed71d94569d08',
-      client_secret: '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',
+      client_id: process.env.NEXT_PUBLIC_42_UID,
+      client_secret: process.env.FORTY_TWO_SECRET,
     });
 
     const accessToken = tokenRes.data.access_token;
-
-    const campusRes = await axios.get('https://api.intra.42.fr/v2/campus/1', {
+    
+    // First, get all campuses
+    const allCampusesRes = await axios.get('https://api.intra.42.fr/v2/campus', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    
+    // Find Abu Dhabi campus
+    const abuDhabiCampus = allCampusesRes.data.find(
+      (campus: any) => campus.name === "Abu Dhabi"
+    );
+    
+    if (!abuDhabiCampus) {
+      return res.status(404).json({ error: "Abu Dhabi campus not found" });
+    }
+    
+    const campusId = abuDhabiCampus.id;
+    
+    // Get detailed information about Abu Dhabi campus
+    const campusRes = await axios.get(`https://api.intra.42.fr/v2/campus/${campusId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
-    res.status(200).json(campusRes.data);
+    res.status(200).json({
+      campusId,
+      campusDetails: campusRes.data
+    });
   } catch (err: any) {
+    console.error('Error fetching campus data:', err);
     res.status(500).json({ error: err.message });
   }
 };

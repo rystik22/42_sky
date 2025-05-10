@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { ArrowRight, LogIn } from 'lucide-react'
 import LoginPage from "../../../components/custom/user_login/page"

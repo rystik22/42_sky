@@ -1,4 +1,4 @@
-export type Event = {
+export interface Event {
   id: number
   title: string
   category: string
@@ -7,4 +7,8 @@ export type Event = {
   location: string
   description: string
   image: string
+  beginAt?: string
+  endAt?: string
+  maxAttendees?: number | null
+  currentAttendees?: number
 }
