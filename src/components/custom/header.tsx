@@ -2,10 +2,13 @@
 import { useState, useEffect } from "react";
 import { Search, Bell, Menu, X, LogIn, Shield } from "lucide-react";
 import { AdminLoginModal } from "../../app/admin/admin_login";
+import LoginPage from "./user_login/page"
+
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+    const [showUserLogin, setShowUserLogin] = useState(false)
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -54,10 +57,6 @@ export const Header = () => {
             </a>
             <a href="/create" className="text-sm text-gray-300 hover:text-white">
               Create
-            </a>
-            <a href="/login" className="flex items-center text-sm text-gray-300 hover:text-white">
-              <LogIn className="h-4 w-4 mr-1" />
-              Login
             </a>
             <button
               onClick={() => setShowAdminLogin(true)}
