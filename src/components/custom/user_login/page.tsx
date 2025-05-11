@@ -1,11 +1,11 @@
-"use client"
 import { useState } from "react"
 import type React from "react"
 
 import { ArrowRight, Lock, Mail, User, ExternalLink } from "lucide-react"
 
 export default function LoginPage() {
-  const [loginMethod, setLoginMethod] = useState<"email" | "42">("email")
+  // Changed the default login method to "42" instead of "email"
+  const [loginMethod, setLoginMethod] = useState<"email" | "42">("42")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -43,18 +43,18 @@ export default function LoginPage() {
       {/* Login method toggle */}
       <div className="flex rounded-lg border border-white/10 mb-6 p-1 relative z-10">
         <button
-          className={`flex-1 py-2 text-sm rounded-md transition-colors ${loginMethod === "email" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`}
-          onClick={() => setLoginMethod("email")}
-        >
-          <Mail className="h-4 w-4 inline-block mr-2" />
-          Email
-        </button>
-        <button
           className={`flex-1 py-2 text-sm rounded-md transition-colors ${loginMethod === "42" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`}
           onClick={() => setLoginMethod("42")}
         >
           <User className="h-4 w-4 inline-block mr-2" />
           42 Intra
+        </button>
+        <button
+          className={`flex-1 py-2 text-sm rounded-md transition-colors ${loginMethod === "email" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`}
+          onClick={() => setLoginMethod("email")}
+        >
+          <Mail className="h-4 w-4 inline-block mr-2" />
+          Email
         </button>
       </div>
 

@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Search, Bell, Menu, X, LogIn, Shield } from "lucide-react";
-import { AdminLoginModal } from "../admin/auth/page";
-import LoginPage from "../../components/custom/user_login/page"
-
+import { AdminLoginModal } from '../admin/_components/admin_login_modal';
+// Rest of your code
+// ...
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
