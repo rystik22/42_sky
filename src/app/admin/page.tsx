@@ -1,28 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-
-// Import components
-import Header from "./_components/header_ad";
-import Sidebar from "./_components/sidebar";
-import DashboardContent from "./_components/dashboard";
-import EventsPage from "./_components/events_ad";
-import UsersPage from "./_components/user_ad";
-import SettingsPage from "./_components/setting_ad";
+import Header from './_components/header_ad';
+import Sidebar from './_components/sidebar';
+import DashboardContent from './_components/dashboard';
+import EventsPage from './_components/events_ad';
+import UsersPage from './_components/user_ad';
+import SettingsPage from './_components/setting_ad';
+import { EventProvider } from '../../components/context/event_provider';
 
 // Main Admin Dashboard Component
 export default function AdminDashboard() {
   const [activePage, setActivePage] = useState('dashboard');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
-  
+
   // Check authorization on load
   useEffect(() => {
     const adminToken = Cookies.get("adminToken");
-    
+
     if (!adminToken) {
       router.push("/admin/auth");
     } else {
@@ -30,6 +30,17 @@ export default function AdminDashboard() {
     }
     setIsLoading(false);
   }, [router]);
+
+  // Check for mobile screen
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768); // Tailwind's 'md' breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Render loading state
   if (isLoading) {
@@ -40,7 +51,16 @@ export default function AdminDashboard() {
     );
   }
 
-  // Don't render anything if not authorized (prevent flash before redirect)
+  // Show message for mobile users
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white text-center p-4">
+        <p className="text-lg">Please use a larger screen or enable desktop mode to view the admin dashboard.</p>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authorized
   if (!isAuthorized) {
     return null;
   }
@@ -63,24 +83,25 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <Header />
+      <EventProvider>
+        {/* Header */}
+        <Header />
 
-      <div className="pt-16 flex">
-        {/* Sidebar */}
-        <Sidebar activePage={activePage} setActivePage={setActivePage} />
+        <div className="pt-16 flex">
+          {/* Sidebar */}
+          <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
-        {/* Main content */}
-        <main className="ml-64 flex-1">
-          {renderPage()}
-        </main>
-      </div>
+          {/* Main content */}
+          <main className="ml-64 flex-1">
+            {renderPage()}
+          </main>
+        </div>
 
-      {/* Background elements */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-20 right-20 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-600/5 rounded-full blur-3xl"></div>
-      </div>
+        {/* Background elements */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl"></div>
+        </div>
+      </EventProvider>
     </div>
   );
 }

@@ -64,14 +64,14 @@ export default function UsersPage() {
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value, type } = e.target as HTMLInputElement;
     
     if (type === 'checkbox') {
-      const checkbox = e.target as HTMLInputElement;
       const eventName = value;
       let updatedEvents = [...formData.managedEvents];
+      const checkboxInput = e.target as HTMLInputElement;
       
-      if (checkbox.checked) {
+      if (checkboxInput.checked) {
         // Add event if not already in the array
         if (!updatedEvents.includes(eventName)) {
           updatedEvents.push(eventName);

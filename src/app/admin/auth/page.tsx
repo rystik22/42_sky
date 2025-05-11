@@ -158,6 +158,9 @@ export default function AdminLoginPage() {
                 Contact support
               </a>
             </p>
+            <p className="text-stone-50 font-thin text-xs mt-2">
+              Please use a larger screen or enable desktop mode to sign in as admin
+            </p>
           </div>
           
           {/* Additional decorative elements */}
