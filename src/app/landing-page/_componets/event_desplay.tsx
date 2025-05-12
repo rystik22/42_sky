@@ -1,4 +1,4 @@
-import { ChevronRight, Calendar, Clock } from 'lucide-react'
+import { ChevronRight, Calendar, Clock, MapPin, Star } from 'lucide-react'
 import { Event } from '../../../types/types'
 import { CategoryBadge } from './category_badge'
 
@@ -13,11 +13,14 @@ export const EventsSection = ({ events, isLoading, currentTime, setSelectedEvent
   return (
     <section className="py-12 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-gray-900"></div>
-
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-1/4 w-1 h-20 bg-white/10"></div>
-      <div className="absolute top-60 left-1/3 w-1 h-48 bg-white/5"></div>
-      <div className="absolute top-40 right-1/4 w-1 h-32 bg-white/10"></div>
+      
+      {/* Decorative elements - abstract geometric shapes */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-10">
+        <div className="absolute top-10 left-1/5 w-24 h-24 bg-blue-500 rotate-45 opacity-20"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 rounded-full bg-purple-500 opacity-10"></div>
+        <div className="absolute bottom-20 left-1/4 w-40 h-16 bg-indigo-500 skew-x-12 opacity-15"></div>
+        <div className="absolute top-1/3 right-1/3 w-20 h-48 bg-teal-500 -rotate-12 opacity-10"></div>
+      </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center mb-16">
@@ -43,60 +46,78 @@ export const EventsSection = ({ events, isLoading, currentTime, setSelectedEvent
           </div>
         ) : (
           <>
-            {/* Event orbit display - Desktop */}
-            <div className="relative h-[600px] hidden md:flex items-center justify-center mb-24">
-              {/* Center element */}
-              <div className="absolute w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center z-20">
-                <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-white/70" />
+            {/* Desktop Cascading Waterfall Layout */}
+            <div className="hidden md:grid grid-cols-3 gap-6 mb-16">
+              {/* Featured event - large card */}
+              <div 
+                className="col-span-3 md:col-span-1 row-span-2 bg-gradient-to-br from-blue-900/40 to-purple-900/40 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-white/30 transition-all cursor-pointer group h-full"
+                onClick={() => setSelectedEvent(events[0])}
+              >
+                <div className="h-48 mb-4 overflow-hidden rounded-lg bg-gray-800 relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                    <div className="text-xs font-medium bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full">
+                      Featured
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-start mb-3">
+                  <CategoryBadge category={events[0].category} />
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 text-yellow-400 mr-1 fill-yellow-400" />
+                    <span className="text-xs text-white/70">Featured</span>
+                  </div>
+                </div>
+                <h3 className="text-xl font-medium text-white mb-3 group-hover:text-blue-300 transition-colors">{events[0].title}</h3>
+                <p className="text-sm text-white/70 mb-4 line-clamp-3">{events[0].description}</p>
+                <div className="flex items-center text-xs text-white/60 mb-2">
+                  <Calendar className="h-3 w-3 mr-2" />
+                  <span>{events[0].date}</span>
+                </div>
+                <div className="flex items-center text-xs text-white/60 mb-2">
+                  <Clock className="h-3 w-3 mr-2" />
+                  <span>{events[0].time}</span>
+                </div>
+                <div className="flex items-center text-xs text-white/60">
+                  <MapPin className="h-3 w-3 mr-2" />
+                  <span>{events[0].location || "Virtual Event"}</span>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <button className="text-sm text-white flex items-center group">
+                    View details <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </div>
               </div>
 
-              {/* Orbital paths */}
-              <div className="absolute w-[500px] h-[500px] rounded-full border border-white/5"></div>
-              <div className="absolute w-[700px] h-[700px] rounded-full border border-white/5"></div>
-
-              {/* Event cards in orbit */}
-              {(() => {
-                const calculatePositions = () => {
-                  return events.slice(0, 6).map((_, index) => {
-                    const angle = (index * (360 / Math.min(events.length, 6)) + currentTime.getSeconds() * 0.5) % 360
-                    const radius = index % 2 === 0 ? 250 : 350 // Inner or outer orbit
-                    const x = Math.cos((angle * Math.PI) / 180) * radius
-                    const y = Math.sin((angle * Math.PI) / 180) * radius
-                    const zIndex = angle > 180 ? 10 : 5
-                    return { x, y, zIndex }
-                  })
-                }
-
-                const positions = calculatePositions()
-
-                return events.slice(0, 6).map((event, index) => {
-                  const position = positions[index]
-                  
-                  return (
-                  <div
+              {/* Staggered card layout */}
+              {events.slice(1, 7).map((event, index) => {
+                // Calculate dynamic styles for staggered appearance
+                const isOdd = index % 2 === 0;
+                const translateY = isOdd ? 'translate-y-6' : '';
+                
+                return (
+                  <div 
                     key={event.id}
-                    className="absolute bg-gray-900/80 backdrop-blur-sm border border-white/10 rounded-lg p-4 w-64 transition-all hover:scale-105 cursor-pointer hover:border-white/30"
-                    style={{
-                      transform: `translate(${position.x}px, ${position.y}px)`,
-                      zIndex: position.zIndex,
-                    }}
+                    className={`bg-gray-900/80 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all hover:scale-105 cursor-pointer hover:border-white/20 ${translateY}`}
                     onClick={() => setSelectedEvent(event)}
                   >
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-3">
                       <CategoryBadge category={event.category} />
                       <span className="text-xs text-white/50">{event.date}</span>
                     </div>
-                    <h3 className="font-medium text-white mb-2">{event.title}</h3>
-                    <div className="flex items-center text-xs text-white/50">
-                      <Clock className="h-3 w-3 mr-1" />
-                      <span>{event.time}</span>
+                    <h3 className="font-medium text-white mb-2 line-clamp-2">{event.title}</h3>
+                    <p className="text-xs text-white/70 mb-3 line-clamp-2">{event.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-xs text-white/50">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <span>{event.time}</span>
+                      </div>
+                      <button className="text-xs flex items-center font-medium text-white/70 hover:text-white transition-colors">
+                        Details <ChevronRight className="h-3 w-3 ml-1" />
+                      </button>
                     </div>
                   </div>
-                  )
-                })
-              })()}
+                )
+              })}
             </div>
 
             {/* Mobile event display */}

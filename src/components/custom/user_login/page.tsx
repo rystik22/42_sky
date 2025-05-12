@@ -1,28 +1,26 @@
-import { useState } from "react"
-import type React from "react"
-import { useRouter } from "next/navigation"
-import { ArrowRight, Lock, Mail, User, ExternalLink } from "lucide-react"
+"use client";
+import { useState } from "react";
+import { ArrowRight, Lock, Mail, User, ExternalLink } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [loginMethod, setLoginMethod] = useState<"email" | "42">("42")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [loginMethod, setLoginMethod] = useState<"email" | "42">("42");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate login process
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Email login logic would go here
     setTimeout(() => {
-      setIsLoading(false)
-      // For email login, you would typically redirect to a success page or handle this differently
-    }, 1500)
-  }
+      setIsLoading(false);
+      alert("Email login not implemented in this demo");
+    }, 1500);
+  };
 
   const handleFortyTwoLogin = () => {
-    setIsLoading(true)
+    setIsLoading(true);
     // Use environment variable for client ID instead of hardcoding
     window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
     

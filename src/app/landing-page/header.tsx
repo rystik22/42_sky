@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Bell, Menu, X, LogIn, Shield, LogOut, User as UserIcon } from "lucide-react";
+import { Search, Bell, Menu, X, LogIn, Shield, LogOut } from "lucide-react";
 import { AdminLoginModal } from '../admin/_components/admin_login_modal';
-import { useAuth } from "../../app/context/auth_provider";
+import { useAuth } from "../../components/custom/client_component_wrapper";
 import Link from "next/link";
 
 export const Header = () => {
@@ -97,13 +97,13 @@ export const Header = () => {
                   <Shield className="h-4 w-4 mr-1" />
                   Admin
                 </Link>
-                <button 
+                {/* <button 
                   onClick={() => setShowUserLogin(true)}
                   className="flex items-center gap-1 py-1 px-3 text-sm bg-white/10 hover:bg-white/15 text-white rounded-full transition-colors"
                 >
                   <LogIn className="h-3.5 w-3.5" /> 
                   Sign In
-                </button>
+                </button> */}
               </>
             )}
             

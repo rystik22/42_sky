@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "../../context/auth_provider";
+import { useAuth } from "../../../components/custom/client_component_wrapper";
 
 function CallbackContent() {
   const router = useRouter();
@@ -17,7 +17,7 @@ function CallbackContent() {
       if (code) {
         try {
           await login(code);
-          router.push("/"); // Redirect to home page after login
+          router.push("/");
         } catch (err) {
           setError("Authentication failed. Please try again.");
         }
