@@ -1,12 +1,13 @@
-"use client";
-
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
   id: string;
   name: string;
   email?: string;
   avatar?: string;
+  login?: string;
 }
 
 interface AuthContextType {
@@ -45,17 +46,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (code: string) => {
     setIsLoading(true);
     try {
-      // In a real app, you would exchange the code for a token with your backend
-      // For demo purposes, we'll simulate a successful login with mock data
+      // Exchange the code for a token
+      const tokenResponse = await axios.post('/api/auth/token', { code });
+      const { access_token } = tokenResponse.data;
+      
+      // Decode the token to get user ID
+      const decodedToken = jwtDecode<{ sub: string }>(access_token);
+      const userId = decodedToken.sub;
+      
+      // Call the API to get user details
+      const userResponse = await axios.get(`/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      
+      // Extract relevant user data
+      const userData = userResponse.data;
       const user = {
-        id: "42_user_id",
-        name: "42 Student",
-        email: "student@42abudhabi.ae",
-        avatar: "https://cdn.intra.42.fr/users/medium_default.png"
+        id: userData.id.toString(),
+        name: userData.displayName || userData.login,
+        login: userData.login,
+        email: userData.email,
+        avatar: userData.profileImage
       };
       
       // Save to localStorage
       localStorage.setItem("userData", JSON.stringify(user));
+      localStorage.setItem("accessToken", access_token);
       setUser(user);
     } catch (error) {
       console.error("Login failed:", error);
@@ -67,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("userData");
+    localStorage.removeItem("accessToken");
     setUser(null);
   };
 

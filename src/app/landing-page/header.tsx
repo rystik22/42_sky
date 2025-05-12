@@ -141,26 +141,41 @@ export const Header = () => {
               Browse Events
             </a>
             
+                        {/* Update the user avatar display section */}
+            
             {user ? (
               <>
-                {/* Mobile logged-in UI */}
-                <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-xs">
-                        {user.name.substring(0, 2).toUpperCase()}
-                      </span>
+                {/* Logged-in UI */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="relative">
+                      {user.avatar ? (
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name}
+                          className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-medium text-xs">
+                            {user.name.substring(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></div>
                     </div>
-                    <span className="text-white font-medium text-sm">{user.name}</span>
+                    <span className="text-white font-medium">
+                      {user.name}
+                    </span>
                   </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 py-1 px-3 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> 
+                    <span>Logout</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="py-2 flex items-center gap-2 text-sm text-gray-300 hover:text-white"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </button>
               </>
             ) : (
               <>
