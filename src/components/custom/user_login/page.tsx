@@ -23,10 +23,7 @@ export default function LoginPage() {
 
   const handleFortyTwoLogin = () => {
     setIsLoading(true)
-    // Redirect to 42 OAuth login
-    const clientId = process.env.NEXT_PUBLIC_42_UID;
-    // Make sure to update with your actual callback URL - this should match what's registered with 42
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
   }
 
   return (
