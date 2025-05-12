@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        // Get user data from localStorage (you might want to use cookies in production)
+        // Get user data from localStorage
         const userData = localStorage.getItem("userData");
         if (userData) {
           setUser(JSON.parse(userData));
