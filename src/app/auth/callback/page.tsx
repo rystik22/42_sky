@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "../context/auth_provider";
+import { useAuth } from "../../context/auth_provider";
 
 export default function AuthCallback() {
   const router = useRouter();
