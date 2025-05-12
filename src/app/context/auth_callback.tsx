@@ -11,7 +11,7 @@ export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const code = searchParams.get("code");
+    const code = searchParams?.get("code");
     
     async function handleCallback() {
       if (code) {

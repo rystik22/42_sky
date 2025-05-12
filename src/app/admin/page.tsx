@@ -9,7 +9,7 @@ import DashboardContent from './_components/dashboard';
 import EventsPage from './_components/events_ad';
 import UsersPage from './_components/user_ad';
 import SettingsPage from './_components/setting_ad';
-import { EventProvider } from '../../components/context/event_provider';
+import { EventProvider } from '../../context/event_provider';
 
 // Main Admin Dashboard Component
 export default function AdminDashboard() {
