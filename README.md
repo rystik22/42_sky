@@ -22,11 +22,11 @@ An elegant event management system built specifically for 42 Abu Dhabi, providin
 
 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
   <img src="public/screenshots/landing-page.png" alt="Landing Page" width="48%">
-  <img src="public/images/screenshots/event-details.png" alt="Event Details" width="48%">
+  <img src="public\screenshots\event-details.png" alt="Event Details" width="48%">
 </div>
 <div style="display: flex; justify-content: space-between;">
-  <img src="public/images/screenshots/admin-dashboard.png" alt="Admin Dashboard" width="48%">
-  <img src="public/images/screenshots/event-creation.png" alt="Event Creation" width="48%">
+  <img src="public\screenshots\admin-dashboard.png" alt="Admin Dashboard" width="48%">
+  <img src="public\screenshots\event-creation.png" alt="Event Creation" width="48%">
 </div>
 
 ## 🚀 Getting Started
