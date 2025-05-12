@@ -10,24 +10,26 @@ function CallbackContent() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const code = searchParams?.get("code");
-    
-    async function handleCallback() {
-      if (code) {
-        try {
-          await login(code);
-          router.push("/");
-        } catch (err) {
-          setError("Authentication failed. Please try again.");
-        }
-      } else {
-        setError("No authentication code received from 42.");
+useEffect(() => {
+  const code = searchParams?.get("code");
+  
+  async function handleCallback() {
+    if (code) {
+      try {
+        await login(code);
+        // Use window.location for a hard redirect
+        window.location.href = "/";
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError("Authentication failed. Please try again.");
       }
+    } else {
+      setError("No authentication code received from 42.");
     }
-    
-    handleCallback();
-  }, [searchParams, login, router]);
+  }
+  
+  handleCallback();
+}, [searchParams, login, router]);
 
   if (error) {
     return (
