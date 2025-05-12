@@ -32,7 +32,8 @@ function CallbackContent() {
         
         if (code && !accessToken) {
           // We have a code but no token - exchange code for token
-          window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
+          // FIXED: This should call the token exchange API, not redirect to auth again
+          window.location.href = `/api/token_ex?code=${code}`;
           return; // Stop execution as we're redirecting
         }
         
