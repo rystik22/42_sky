@@ -1,6 +1,7 @@
 "use client";
+
 import { useState } from "react";
-import { ArrowRight, Lock, Mail, User, ExternalLink } from "lucide-react";
+import { User, Mail, Lock, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
   const [loginMethod, setLoginMethod] = useState<"email" | "42">("42");
@@ -21,14 +22,29 @@ export default function LoginPage() {
 
   const handleFortyTwoLogin = () => {
     setIsLoading(true);
-    // Use environment variable for client ID instead of hardcoding
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
+    
+    // Get client ID from environment variable
+    const clientId = process.env.NEXT_PUBLIC_42_UID;
+    
+    // Make sure we have a client ID
+    if (!clientId) {
+      console.error("Missing 42 client ID");
+      alert("Configuration error. Please contact the administrator.");
+      setIsLoading(false);
+      return;
+    }
+    
+    // Create the redirect URL - using hardcoded value as fallback
+    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI || 'https://42sky.vercel.app/auth/callback';
+    
+    // Redirect to 42 OAuth page
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
     
     // Reset loading state if the redirect is blocked
     setTimeout(() => {
       setIsLoading(false);
     }, 3000);
-  }
+  };
 
   return (
     <div className="bg-gray-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-8 relative overflow-hidden w-full max-w-md mx-auto">
@@ -120,7 +136,7 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="bg-black/30 border border-white/10 rounded-lg p-6 mb-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-              <div className="font-bold text-xl">42</div>
+              <img src="/image.png" alt="42 Logo" className="w-10 h-10" />
             </div>
             <p className="text-sm text-white/70 mb-2">Sign in using your 42 Intra credentials</p>
             <p className="text-xs text-white/50">You'll be redirected to the 42 authentication page</p>
@@ -135,8 +151,7 @@ export default function LoginPage() {
               <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
             ) : (
               <>
-                Continue with 42{" "}
-                <ExternalLink className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                Continue with 42 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
@@ -152,5 +167,5 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
       <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
     </div>
-  )
+  );
 }

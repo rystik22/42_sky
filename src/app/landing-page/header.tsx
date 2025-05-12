@@ -1,9 +1,10 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { Search, Bell, Menu, X, LogIn, Shield, LogOut } from "lucide-react";
-import { AdminLoginModal } from '../admin/_components/admin_login_modal';
-import { useAuth } from "../../components/custom/client_component_wrapper";
 import Link from "next/link";
+import { Bell, LogIn, LogOut, Menu, Search, Shield, User, X } from "lucide-react";
+import { useAuth } from "../../components/custom/client_component_wrapper";
+import Cookies from 'js-cookie';
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,7 @@ export const Header = () => {
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
+  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,8 +23,20 @@ export const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Check for user data in cookies on component mount
+    const storedUserData = Cookies.get("userData");
+    if (storedUserData && !user) {
+      // If there's stored user data but no user in context
+      const parsedUser = JSON.parse(storedUserData);
+      setLocalUser(parsedUser);
+      console.log("User data found in cookies", parsedUser);
+    }
+  }, [user]);
+
   const handleLogout = () => {
     logout();
+    setLocalUser(null);
     // Close mobile menu if open
     if (isOpen) setIsOpen(false);
   };
@@ -63,49 +77,67 @@ export const Header = () => {
               Browse
             </a>
             
-            {user ? (
-              <>
-                {/* Logged-in UI */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="relative">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-medium text-xs">
-                          {user.name.substring(0, 2).toUpperCase()}
-                        </span>
+            {/* User Profile or Login Button */}
+            {(() => {
+              // Check cookies for user data since context might not be updated yet
+              const userData = Cookies.get("userData");
+              const parsedUser = userData ? JSON.parse(userData) : null;
+              const activeUser = user || localUser || parsedUser;
+              
+              if (activeUser) {
+                return (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="relative">
+                        {activeUser.avatar ? (
+                          <img 
+                            src={activeUser.avatar} 
+                            alt={activeUser.name}
+                            className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-medium text-xs">
+                              {activeUser.name.substring(0, 2).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></div>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></div>
+                      <span className="text-white font-medium">
+                        {activeUser.login || activeUser.name}
+                      </span>
                     </div>
-                    <span className="text-white font-medium">{user.name}</span>
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center gap-1.5 py-1 px-3 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                    >
+                      <LogOut className="h-3.5 w-3.5" /> 
+                      <span>Logout</span>
+                    </button>
                   </div>
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-1.5 py-1 px-3 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-                  >
-                    <LogOut className="h-3.5 w-3.5" /> 
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Non-logged in UI */}
-                <Link 
-                  href="/admin/auth"
-                  className="flex items-center text-sm text-gray-300 hover:text-white"
-                >
-                  <Shield className="h-4 w-4 mr-1" />
-                  Admin
-                </Link>
-                {/* <button 
-                  onClick={() => setShowUserLogin(true)}
-                  className="flex items-center gap-1 py-1 px-3 text-sm bg-white/10 hover:bg-white/15 text-white rounded-full transition-colors"
-                >
-                  <LogIn className="h-3.5 w-3.5" /> 
-                  Sign In
-                </button> */}
-              </>
-            )}
+                );
+              } else {
+                return (
+                  <>
+                    <Link 
+                      href="/admin/auth"
+                      className="flex items-center text-sm text-gray-300 hover:text-white"
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      Admin
+                    </Link>
+                    <Link
+                      href="/user/login"
+                      className="flex items-center gap-1.5 py-1.5 px-4 text-sm bg-white text-black rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                      <span>Sign In</span>
+                    </Link>
+                  </>
+                );
+              }
+            })()}
             
             <button className="p-1.5 rounded-full hover:bg-white/10">
               <Bell className="h-4 w-4 text-gray-300" />
@@ -128,6 +160,7 @@ export const Header = () => {
             scrolled ? "bg-black/40 backdrop-blur-md" : "bg-black/70 backdrop-blur-lg"
           }`}
         >
+          {/* Mobile navigation content */}
           <div className="flex flex-col space-y-3">
             <div className="relative">
               <input
@@ -141,67 +174,62 @@ export const Header = () => {
               Browse Events
             </a>
             
-                        {/* Update the user avatar display section */}
-            
-            {user ? (
-              <>
-                {/* Logged-in UI */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="relative">
-                      {user.avatar ? (
+            {/* Mobile User Profile or Login Button */}
+            {(() => {
+              const userData = Cookies.get("userData");
+              const parsedUser = userData ? JSON.parse(userData) : null;
+              const activeUser = user || localUser || parsedUser;
+              
+              if (activeUser) {
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {activeUser.avatar ? (
                         <img 
-                          src={user.avatar} 
-                          alt={user.name}
-                          className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                          src={activeUser.avatar} 
+                          alt={activeUser.name}
+                          className="w-7 h-7 rounded-full object-cover border border-white/20"
                         />
                       ) : (
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium text-xs">
-                            {user.name.substring(0, 2).toUpperCase()}
+                            {activeUser.name.substring(0, 2).toUpperCase()}
                           </span>
                         </div>
                       )}
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></div>
+                      <span className="text-white text-sm font-medium">
+                        {activeUser.login || activeUser.name}
+                      </span>
                     </div>
-                    <span className="text-white font-medium">
-                      {user.name}
-                    </span>
+                    <button 
+                      onClick={handleLogout}
+                      className="text-sm text-red-400 hover:text-red-300"
+                    >
+                      Logout
+                    </button>
                   </div>
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-1.5 py-1 px-3 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-                  >
-                    <LogOut className="h-3.5 w-3.5" /> 
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Mobile non-logged in UI */}
-                <button
-                  onClick={() => {
-                    setShowUserLogin(true);
-                    setIsOpen(false);
-                  }}
-                  className="py-2 flex items-center gap-2 text-sm text-gray-300 hover:text-white"
-                >
-                  <LogIn className="h-4 w-4" />
-                  Sign In
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAdminLogin(true);
-                    setIsOpen(false);
-                  }}
-                  className="py-2 text-sm flex items-center text-gray-300 hover:text-white"
-                >
-                  <Shield className="h-4 w-4 mr-1" />
-                  Admin Login
-                </button>
-              </>
-            )}
+                );
+              } else {
+                return (
+                  <>
+                    <button
+                      onClick={() => window.location.href = '/user/login'}
+                      className="py-2 flex items-center gap-2 text-sm text-gray-300 hover:text-white"
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/admin/auth'}
+                      className="py-2 text-sm flex items-center text-gray-300 hover:text-white"
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      Admin Login
+                    </button>
+                  </>
+                );
+              }
+            })()}
             
             <button className="py-2 flex items-center text-sm text-gray-300 hover:text-white">
               <Bell className="h-4 w-4 mr-1" />
@@ -211,21 +239,18 @@ export const Header = () => {
         </div>
       )}
 
-      {/* Overlay */}
+      {/* Decorative elements */}
       <div
         className={`absolute inset-0 bg-gradient-to-r from-purple-900/20 via-indigo-800/10 to-blue-900/20 pointer-events-none transition-opacity duration-500 ${
           scrolled ? "opacity-40" : "opacity-70"
         }`}
       ></div>
 
-      {/* Scroll highlight */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent transition-all duration-700 ease-in-out ${
           scrolled ? "opacity-100 blur-sm" : "opacity-0"
         }`}
       ></div>
-
-      <AdminLoginModal isOpen={showAdminLogin} onClose={() => setShowAdminLogin(false)} />
     </nav>
   );
 };

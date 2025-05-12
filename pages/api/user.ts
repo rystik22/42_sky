@@ -6,18 +6,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { id } = req.query;
-  const authHeader = req.headers.authorization;
+  const { id, token } = req.query;
 
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Authorization header is required' });
+  if (!id || !token) {
+    return res.status(400).json({ error: 'User ID and token are required' });
   }
 
   try {
     // Get user details from the 42 API
     const userResponse = await axios.get(`https://api.intra.42.fr/v2/users/${id}`, {
       headers: {
-        Authorization: authHeader
+        Authorization: `Bearer ${token}`
       }
     });
 

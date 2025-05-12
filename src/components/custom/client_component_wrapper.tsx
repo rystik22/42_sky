@@ -1,11 +1,15 @@
 "use client";
 
 import { ReactNode, useState, useEffect, createContext, useContext } from "react";
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 // Define the User interface
 interface User {
   id: string;
   name: string;
+  login?: string;
   email?: string;
   avatar?: string;
 }
@@ -14,7 +18,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (code: string) => Promise<void>;
+  login: (code: string | null, userData?: any) => Promise<void>;
   logout: () => void;
 }
 
@@ -42,9 +46,9 @@ export default function ClientWrapper({
     // Check for existing session on mount
     const checkUserSession = () => {
       try {
-        const userData = localStorage.getItem("userData");
-        if (userData) {
-          setUser(JSON.parse(userData));
+        const userDataCookie = Cookies.get("userData");
+        if (userDataCookie) {
+          setUser(JSON.parse(userDataCookie));
         }
       } catch (error) {
         console.error("Failed to restore user session:", error);
@@ -56,24 +60,51 @@ export default function ClientWrapper({
     checkUserSession();
   }, []);
 
-  // Handle login
-  const login = async (code: string): Promise<void> => {
+  // Handle login - can either process a code or use pre-fetched userData
+  const login = async (code: string | null, userData?: any): Promise<void> => {
     setIsLoading(true);
     try {
-      // For demo purposes, simulate authentication with the 42 API
-      console.log("Processing authentication code:", code);
+      // If userData is provided directly (from callback page), use it
+      if (userData) {
+        setUser(userData);
+        return;
+      }
       
-      // Simulate successful login with mock data
-      const user = {
-        id: "42_user_id",
-        name: "42 Student",
-        email: "student@42abudhabi.ae",
-        avatar: "https://cdn.intra.42.fr/users/medium_default.png"
-      };
+      // If no userData but we have a code, fetch the token
+      if (code) {
+        // Redirect to the token exchange endpoint
+        window.location.href = `/api/token_ex?code=${code}`;
+        return; // Return early as we're redirecting
+      }
       
-      // Store user data in localStorage
-      localStorage.setItem("userData", JSON.stringify(user));
-      setUser(user);
+      // If neither userData nor code, check for token in cookies
+      const accessToken = Cookies.get("accessToken");
+      if (accessToken) {
+        // Decode the token to get user ID
+        const decodedToken = jwtDecode<{ sub: string }>(accessToken);
+        const userId = decodedToken.sub;
+        
+        // Fetch user data
+        const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
+        const apiUserData = userResponse.data;
+        
+        // Format user object
+        const formattedUser = {
+          id: apiUserData.id.toString(),
+          name: apiUserData.displayName || apiUserData.login,
+          login: apiUserData.login,
+          email: apiUserData.email,
+          avatar: apiUserData.profileImage
+        };
+        
+        // Save user data
+        Cookies.set("userData", JSON.stringify(formattedUser), { expires: 7, sameSite: 'strict' });
+        setUser(formattedUser);
+      } else {
+        // No token found
+        console.error("No authentication token found");
+        throw new Error("Authentication failed - no token available");
+      }
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -84,7 +115,8 @@ export default function ClientWrapper({
 
   // Handle logout
   const logout = () => {
-    localStorage.removeItem("userData");
+    Cookies.remove("userData");
+    Cookies.remove("accessToken");
     setUser(null);
   };
 

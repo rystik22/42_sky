@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode'; // You'll need to install this
 
 interface User {
   id: string;
@@ -42,22 +42,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkUserSession();
   }, []);
 
-  // Handle 42 OAuth login
+  // Handle 42 OAuth login using only GET requests
   const login = async (code: string) => {
     setIsLoading(true);
     try {
-      // Exchange the code for a token
-      const tokenResponse = await axios.post('/api/auth/token', { code });
-      const { access_token } = tokenResponse.data;
+      // Exchange the code for a token - Note: This is handled by the server-side callback
+      // We are assuming the token is fetched via another mechanism and sent in the URL
+      // For example, redirect URL contains the token as a fragment/query param
+      
+      // Fetch the token from the URL (you'll need to pass it as a parameter)
+      // This is a simplification - you would need to adjust based on how you pass the token
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('access_token');
+      
+      if (!accessToken) {
+        throw new Error("No access token found");
+      }
       
       // Decode the token to get user ID
-      const decodedToken = jwtDecode<{ sub: string }>(access_token);
+      const decodedToken = jwtDecode<{ sub: string }>(accessToken);
       const userId = decodedToken.sub;
       
-      // Call the API to get user details
-      const userResponse = await axios.get(`/api/users/${userId}`, {
-        headers: { Authorization: `Bearer ${access_token}` }
-      });
+      // Call the API to get user details using GET with query params
+      const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
       
       // Extract relevant user data
       const userData = userResponse.data;
@@ -71,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Save to localStorage
       localStorage.setItem("userData", JSON.stringify(user));
-      localStorage.setItem("accessToken", access_token);
+      localStorage.setItem("accessToken", accessToken);
       setUser(user);
     } catch (error) {
       console.error("Login failed:", error);
