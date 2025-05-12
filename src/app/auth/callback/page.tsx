@@ -21,24 +21,27 @@ function CallbackContent() {
         const code = searchParams?.get("code");
         const accessToken = searchParams?.get("access_token");
         
+        // If we have a code but no token, redirect to token exchange
         if (code && !accessToken) {
-          // We have a code but no token - exchange code for token
+          console.log("Got code, exchanging for token...");
           window.location.href = `/api/token_ex?code=${code}`;
-          return; // Stop execution as we're redirecting
+          return; // Exit early as we're redirecting
         }
         
+        // If we have a token, process it
         if (accessToken) {
+          console.log("Got access token, fetching user data...");
+          
           try {
-            // We have the token directly in the URL
             // Decode the token to get user ID
             const decodedToken = jwtDecode<{ sub: string }>(accessToken);
             const userId = decodedToken.sub;
             
-            // Fetch user data using our existing API endpoint
+            // Fetch user data
             const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
-            
-            // Store user data
             const userData = userResponse.data;
+            
+            // Format user data
             const user = {
               id: userData.id.toString(),
               name: userData.displayName || userData.login,
@@ -47,32 +50,40 @@ function CallbackContent() {
               avatar: userData.profileImage
             };
             
-            // Store user data and token in cookies
+            console.log("User data fetched successfully", user);
+            
+            // Save user data in cookies
             Cookies.set("userData", JSON.stringify(user), { expires: 7, sameSite: 'strict' });
             Cookies.set("accessToken", accessToken, { expires: 7, sameSite: 'strict' });
             
             // Update auth context
-            login(null, user);
+            await login(null, user);
+            console.log("Auth context updated, redirecting to homepage");
+            
+            // Add a small delay to allow cookies to be set
+            setTimeout(() => {
+              router.push("/");
+            }, 500);
+            
           } catch (err) {
             console.error("Error processing user data:", err);
-            // Continue with redirect even if there's an error - the header will handle missing data
+            // If there's an error, still redirect to homepage
+            router.push("/");
           }
-          
-          // Always redirect to landing page
-          router.push("/");
         } else {
-          // No code or token, just redirect to home
+          // No code or token, just redirect
+          console.log("No code or token, redirecting to homepage");
           router.push("/");
         }
       } catch (error) {
         console.error("Authentication error:", error);
-        // Even if there's an error, redirect to landing page
+        // If there's an error, redirect to homepage
         router.push("/");
       }
     }
     
     handleCallback();
-  }, [searchParams, router, login]);
+  }, []);  // Remove dependencies to prevent re-runs
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 w-full max-w-md">

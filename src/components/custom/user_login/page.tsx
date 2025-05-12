@@ -21,26 +21,30 @@ export default function LoginPage() {
   };
 
   const handleFortyTwoLogin = () => {
-    setIsLoading(true);
-    
-    // Get client ID from environment variable
-    const clientId = process.env.NEXT_PUBLIC_42_UID;
-    
-    // Make sure we have a client ID
-    if (!clientId) {
-      console.error("Missing 42 client ID");
-      alert("Configuration error. Please contact the administrator.");
-      setIsLoading(false);
-      return;
-    }
-    // Redirect to 42 OAuth page
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
-    
-    // Reset loading state if the redirect is blocked
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
-  };
+  setIsLoading(true);
+  
+  // Get client ID from environment variable
+  const clientId = process.env.NEXT_PUBLIC_42_UID;
+  
+  // Make sure we have a client ID
+  if (!clientId) {
+    console.error("Missing 42 client ID");
+    alert("Configuration error. Please contact the administrator.");
+    setIsLoading(false);
+    return;
+  }
+
+  // Log the redirect for debugging
+  console.log("Redirecting to 42 authentication...");
+
+  // Use clientId variable instead of environment variable directly
+  window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
+  
+  // Reset loading state if the redirect is blocked
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 3000);
+};
 
   return (
     <div className="bg-gray-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-8 relative overflow-hidden w-full max-w-md mx-auto">
