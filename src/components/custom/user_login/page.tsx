@@ -33,12 +33,8 @@ export default function LoginPage() {
       setIsLoading(false);
       return;
     }
-    
-    // Create the redirect URL - using hardcoded value as fallback
-    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI || 'https://42sky.vercel.app/auth/callback';
-    
     // Redirect to 42 OAuth page
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
     
     // Reset loading state if the redirect is blocked
     setTimeout(() => {
