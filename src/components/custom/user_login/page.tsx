@@ -1,10 +1,10 @@
 import { useState } from "react"
 import type React from "react"
-
+import { useRouter } from "next/navigation"
 import { ArrowRight, Lock, Mail, User, ExternalLink } from "lucide-react"
 
 export default function LoginPage() {
-  // Changed the default login method to "42" instead of "email"
+  const router = useRouter();
   const [loginMethod, setLoginMethod] = useState<"email" | "42">("42")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -17,12 +17,16 @@ export default function LoginPage() {
     // Simulate login process
     setTimeout(() => {
       setIsLoading(false)
+      // For email login, you would typically redirect to a success page or handle this differently
     }, 1500)
   }
 
   const handleFortyTwoLogin = () => {
     setIsLoading(true)
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_42_UID}&redirect_uri=https%3A%2F%2F42sky.vercel.app&response_type=code`
+    // Redirect to 42 OAuth login
+    const clientId = process.env.NEXT_PUBLIC_42_UID;
+    // Make sure to update with your actual callback URL - this should match what's registered with 42
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=https%3A%2F%2F42sky.vercel.app%2Fauth%2Fcallback&response_type=code`;
   }
 
   return (

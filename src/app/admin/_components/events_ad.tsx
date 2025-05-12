@@ -221,16 +221,24 @@ export default function EventsAdminPage() {
         <h1 className="text-2xl font-light">
           Events <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Management</span>
         </h1>
-        <button 
-          onClick={handleAddEvent}
-          className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New Event
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => window.location.href = '/admin/events/import'}
+            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm transition-colors"
+          >
+            <Filter className="h-4 w-4" />
+            Import CSV
+          </button>
+          <button 
+            onClick={handleAddEvent}
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            New Event
+          </button>
+        </div>
       </div>
 
-      {/* Category Filters */}
       <div className="mb-6">
         <div className="flex flex-wrap gap-2">
           <button
@@ -258,7 +266,6 @@ export default function EventsAdminPage() {
           ))}
         </div>
       </div>
-      
       {/* Events List */}
       {isLoading ? (
         <div className="flex justify-center items-center h-40">

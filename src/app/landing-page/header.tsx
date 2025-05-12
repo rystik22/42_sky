@@ -1,15 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Bell, Menu, X, LogIn, Shield } from "lucide-react";
+import { Search, Bell, Menu, X, LogIn, Shield, LogOut, User as UserIcon } from "lucide-react";
 import { AdminLoginModal } from '../admin/_components/admin_login_modal';
-// Rest of your code
-// ...
+import { useAuth } from "../../app/context/auth_provider";
+import Link from "next/link";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-    const [showUserLogin, setShowUserLogin] = useState(false)
+  const [showUserLogin, setShowUserLogin] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +20,12 @@ export const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    // Close mobile menu if open
+    if (isOpen) setIsOpen(false);
+  };
 
   return (
     <nav
@@ -55,16 +62,51 @@ export const Header = () => {
             <a href="/events" className="text-sm text-gray-300 hover:text-white">
               Browse
             </a>
-            {/* <a href="/create" className="text-sm text-gray-300 hover:text-white">
-              Create
-            </a> */}
-            <a 
-              href="/admin/auth"
-              className="flex items-center text-sm text-gray-300 hover:text-white"
-            >
-              <Shield className="h-4 w-4 mr-1" />
-              Admin
-            </a>
+            
+            {user ? (
+              <>
+                {/* Logged-in UI */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="relative">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-xs">
+                          {user.name.substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></div>
+                    </div>
+                    <span className="text-white font-medium">{user.name}</span>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 py-1 px-3 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> 
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Non-logged in UI */}
+                <Link 
+                  href="/admin/auth"
+                  className="flex items-center text-sm text-gray-300 hover:text-white"
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Link>
+                <button 
+                  onClick={() => setShowUserLogin(true)}
+                  className="flex items-center gap-1 py-1 px-3 text-sm bg-white/10 hover:bg-white/15 text-white rounded-full transition-colors"
+                >
+                  <LogIn className="h-3.5 w-3.5" /> 
+                  Sign In
+                </button>
+              </>
+            )}
+            
             <button className="p-1.5 rounded-full hover:bg-white/10">
               <Bell className="h-4 w-4 text-gray-300" />
             </button>
@@ -98,22 +140,54 @@ export const Header = () => {
             <a href="/events" className="py-2 text-sm text-gray-300 hover:text-white">
               Browse Events
             </a>
-            <a href="/create" className="py-2 text-sm text-gray-300 hover:text-white">
-              Create Event
-            </a>
-            <a href="/login" className="py-2 text-sm text-gray-300 hover:text-white">
-              Login
-            </a>
-            <button
-              onClick={() => {
-                setShowAdminLogin(true);
-                setIsOpen(false);
-              }}
-              className="py-2 text-sm flex items-center text-gray-300 hover:text-white"
-            >
-              <Shield className="h-4 w-4 mr-1" />
-              Admin Login
-            </button>
+            
+            {user ? (
+              <>
+                {/* Mobile logged-in UI */}
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-xs">
+                        {user.name.substring(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-white font-medium text-sm">{user.name}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="py-2 flex items-center gap-2 text-sm text-gray-300 hover:text-white"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Mobile non-logged in UI */}
+                <button
+                  onClick={() => {
+                    setShowUserLogin(true);
+                    setIsOpen(false);
+                  }}
+                  className="py-2 flex items-center gap-2 text-sm text-gray-300 hover:text-white"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAdminLogin(true);
+                    setIsOpen(false);
+                  }}
+                  className="py-2 text-sm flex items-center text-gray-300 hover:text-white"
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin Login
+                </button>
+              </>
+            )}
+            
             <button className="py-2 flex items-center text-sm text-gray-300 hover:text-white">
               <Bell className="h-4 w-4 mr-1" />
               Notifications
