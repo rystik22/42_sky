@@ -5,92 +5,114 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../components/custom/client_component_wrapper";
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
+
+// Helper function to safely handle localStorage
+function safeLocalStorage(operation: 'get' | 'set' | 'remove', key: string, value?: any) {
+  if (typeof window !== 'undefined') {
+    if (operation === 'get') {
+      return localStorage.getItem(key);
+    } else if (operation === 'set' && value !== undefined) {
+      localStorage.setItem(key, value);
+    } else if (operation === 'remove') {
+      localStorage.removeItem(key);
+    }
+  }
+  return null;
+}
 
 // Create a component that uses useSearchParams inside Suspense
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { login } = useAuth();
 
   useEffect(() => {
     async function handleCallback() {
       try {
+        // Check for error first
+        const errorMsg = searchParams?.get("error");
+        if (errorMsg) {
+          setError(`Authentication failed: ${errorMsg}`);
+          setIsLoading(false);
+          return;
+        }
+        
         // Get authorization code from URL
         const code = searchParams?.get("code");
         const accessToken = searchParams?.get("access_token");
         
-        // If we have a code but no token, redirect to token exchange
         if (code && !accessToken) {
-          console.log("Got code, exchanging for token...");
+          // We have a code but no token - exchange code for token
           window.location.href = `/api/token_ex?code=${code}`;
-          return; // Exit early as we're redirecting
+          return; // Stop execution as we're redirecting
         }
         
-        // If we have a token, process it
         if (accessToken) {
-          console.log("Got access token, fetching user data...");
+          // We have the token directly in the URL
+          // Decode the token to get user ID
+          const decodedToken = jwtDecode<{ sub: string }>(accessToken);
+          const userId = decodedToken.sub;
           
-          try {
-            // Decode the token to get user ID
-            const decodedToken = jwtDecode<{ sub: string }>(accessToken);
-            const userId = decodedToken.sub;
-            
-            // Fetch user data
-            const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
-            const userData = userResponse.data;
-            
-            // Format user data
-            const user = {
-              id: userData.id.toString(),
-              name: userData.displayName || userData.login,
-              login: userData.login,
-              email: userData.email,
-              avatar: userData.profileImage
-            };
-            
-            console.log("User data fetched successfully", user);
-            
-            // Save user data in cookies
-            Cookies.set("userData", JSON.stringify(user), { expires: 7, sameSite: 'strict' });
-            Cookies.set("accessToken", accessToken, { expires: 7, sameSite: 'strict' });
-            
-            // Update auth context
-            await login(null, user);
-            console.log("Auth context updated, redirecting to homepage");
-            
-            // Add a small delay to allow cookies to be set
-            setTimeout(() => {
-              router.push("/");
-            }, 500);
-            
-          } catch (err) {
-            console.error("Error processing user data:", err);
-            // If there's an error, still redirect to homepage
-            router.push("/");
-          }
-        } else {
-          // No code or token, just redirect
-          console.log("No code or token, redirecting to homepage");
+          // Fetch user data using our existing API endpoint with GET parameters
+          const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
+          
+          // Store user data
+          const userData = userResponse.data;
+          const user = {
+            id: userData.id.toString(),
+            name: userData.displayName || userData.login,
+            login: userData.login,
+            email: userData.email,
+            avatar: userData.profileImage
+          };
+          
+          // Save to localStorage (safely)
+          safeLocalStorage('set', 'userData', JSON.stringify(user));
+          safeLocalStorage('set', 'accessToken', accessToken);
+          
+          // Redirect to home page
           router.push("/");
+        } else {
+          setError("No authorization code or access token provided");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Authentication error:", error);
-        // If there's an error, redirect to homepage
-        router.push("/");
+        // Provide more detailed error information
+        if (error.response) {
+          setError(`Authentication failed: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+        } else {
+          setError("Failed to complete authentication");
+        }
+      } finally {
+        setIsLoading(false);
       }
     }
     
     handleCallback();
-  }, []);  // Remove dependencies to prevent re-runs
+  }, [searchParams, router]);
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 w-full max-w-md">
-      <div className="flex justify-center mb-4">
-        <div className="h-12 w-12 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin"></div>
-      </div>
-      <p className="text-center text-white text-lg">Completing authentication...</p>
+      {isLoading ? (
+        <>
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-center text-white text-lg">Completing authentication...</p>
+        </>
+      ) : error ? (
+        <>
+          <h2 className="text-red-400 text-xl mb-4 text-center">Authentication Error</h2>
+          <p className="text-white/70 text-center mb-6">{error}</p>
+          <button 
+            onClick={() => router.push("/")}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Return to Homepage
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

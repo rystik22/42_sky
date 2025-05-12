@@ -1,11 +1,10 @@
 "use client";
 
-import { ReactNode, useState, useEffect, createContext, useContext } from "react";
-import Cookies from 'js-cookie';
+import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
 
-// Define the User interface
 interface User {
   id: string;
   name: string;
@@ -14,110 +13,117 @@ interface User {
   avatar?: string;
 }
 
-// Define the Auth Context interface
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (code: string | null, userData?: any) => Promise<void>;
+  login: (code?: string, userData?: User) => Promise<void>;
   logout: () => void;
 }
 
-// Create the Auth Context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+// Safe localStorage function that checks if window exists
+function safeLocalStorage(operation: 'get' | 'set' | 'remove', key: string, value?: any) {
+  if (typeof window !== 'undefined') {
+    if (operation === 'get') {
+      return localStorage.getItem(key);
+    } else if (operation === 'set' && value !== undefined) {
+      localStorage.setItem(key, value);
+    } else if (operation === 'remove') {
+      localStorage.removeItem(key);
+    }
   }
-  return context;
+  return null;
 }
 
-// Client wrapper component
-export default function ClientWrapper({
-  children,
-}: {
-  children: ReactNode;
-}) {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session on mount
-    const checkUserSession = () => {
-      try {
-        const userDataCookie = Cookies.get("userData");
-        if (userDataCookie) {
-          setUser(JSON.parse(userDataCookie));
+    const checkExistingSession = () => {
+      // Try to get user data from localStorage
+      const storedUser = safeLocalStorage('get', 'userData');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse stored user data");
+          safeLocalStorage('remove', 'userData');
         }
-      } catch (error) {
-        console.error("Failed to restore user session:", error);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
-    
-    checkUserSession();
+
+    checkExistingSession();
   }, []);
 
-  // Handle login - can either process a code or use pre-fetched userData
-  const login = async (code: string | null, userData?: any): Promise<void> => {
+  const login = async (code?: string, userData?: User) => {
     setIsLoading(true);
+    
     try {
-      // If userData is provided directly (from callback page), use it
+      // If user data is directly provided, use that
       if (userData) {
         setUser(userData);
+        safeLocalStorage('set', 'userData', JSON.stringify(userData));
         return;
       }
       
-      // If no userData but we have a code, fetch the token
+      // If we have a code but no user data, that means we need to
+      // exchange the code for a token via our API route
       if (code) {
         // Redirect to the token exchange endpoint
         window.location.href = `/api/token_ex?code=${code}`;
-        return; // Return early as we're redirecting
+        return;
       }
       
-      // If neither userData nor code, check for token in cookies
-      const accessToken = Cookies.get("accessToken");
-      if (accessToken) {
-        // Decode the token to get user ID
-        const decodedToken = jwtDecode<{ sub: string }>(accessToken);
-        const userId = decodedToken.sub;
-        
-        // Fetch user data
-        const userResponse = await axios.get(`/api/user?id=${userId}&token=${accessToken}`);
-        const apiUserData = userResponse.data;
-        
-        // Format user object
-        const formattedUser = {
-          id: apiUserData.id.toString(),
-          name: apiUserData.displayName || apiUserData.login,
-          login: apiUserData.login,
-          email: apiUserData.email,
-          avatar: apiUserData.profileImage
-        };
-        
-        // Save user data
-        Cookies.set("userData", JSON.stringify(formattedUser), { expires: 7, sameSite: 'strict' });
-        setUser(formattedUser);
-      } else {
-        // No token found
-        console.error("No authentication token found");
-        throw new Error("Authentication failed - no token available");
+      // Check if we have a token in localStorage (might be after a page refresh)
+      const token = safeLocalStorage('get', 'accessToken');
+      
+      if (token) {
+        try {
+          // Decode the token to get the user ID
+          const decoded = jwtDecode<{ sub: string }>(token);
+          const userId = decoded.sub;
+          
+          // Call our API to get user details
+          const userResponse = await axios.get(`/api/user?id=${userId}&token=${token}`);
+          
+          // Format the user data and save it
+          const userData = userResponse.data;
+          const user = {
+            id: userData.id.toString(),
+            name: userData.displayName || userData.login,
+            login: userData.login,
+            email: userData.email,
+            avatar: userData.profileImage
+          };
+          
+          setUser(user);
+          safeLocalStorage('set', 'userData', JSON.stringify(user));
+        } catch (error) {
+          console.error("Failed to verify token or get user data:", error);
+          // Clear the invalid token
+          safeLocalStorage('remove', 'accessToken');
+        }
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
+      console.error("Authentication error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle logout
   const logout = () => {
-    Cookies.remove("userData");
-    Cookies.remove("accessToken");
     setUser(null);
+    safeLocalStorage('remove', 'userData');
+    safeLocalStorage('remove', 'accessToken');
+    
+    // You might also want to clear cookies
+    if (typeof Cookies !== 'undefined') {
+      Cookies.remove('userData');
+      Cookies.remove('accessToken');
+    }
   };
 
   return (
@@ -127,4 +133,12 @@ export default function ClientWrapper({
   );
 }
 
-export { AuthContext };
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}
+
+export default AuthProvider;

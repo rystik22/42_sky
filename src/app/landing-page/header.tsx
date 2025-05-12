@@ -4,41 +4,67 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bell, LogIn, LogOut, Menu, Search, Shield, User, X } from "lucide-react";
 import { useAuth } from "../../components/custom/client_component_wrapper";
-import Cookies from 'js-cookie';
+
+// Safe localStorage function that checks if window exists
+function safeLocalStorage(operation: 'get' | 'set' | 'remove', key: string, value?: any) {
+  if (typeof window !== 'undefined') {
+    if (operation === 'get') {
+      return localStorage.getItem(key);
+    } else if (operation === 'set' && value !== undefined) {
+      localStorage.setItem(key, value);
+    } else if (operation === 'remove') {
+      localStorage.removeItem(key);
+    }
+  }
+  return null;
+}
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [showUserLogin, setShowUserLogin] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userData, setUserData] = useState(null);
   const { user, logout } = useAuth();
-  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
       setScrolled(isScrolled);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
   }, []);
 
   useEffect(() => {
-    // Check for user data in cookies on component mount
-    const storedUserData = Cookies.get("userData");
+    // Check for user data in localStorage on component mount
+    const storedUserData = safeLocalStorage('get', 'userData');
     if (storedUserData && !user) {
-      // If there's stored user data but no user in context
-      const parsedUser = JSON.parse(storedUserData);
-      setLocalUser(parsedUser);
-      console.log("User data found in cookies", parsedUser);
+      setUserData(JSON.parse(storedUserData));
     }
   }, [user]);
 
   const handleLogout = () => {
     logout();
-    setLocalUser(null);
+    // Also clear localStorage
+    safeLocalStorage('remove', 'userData');
+    safeLocalStorage('remove', 'accessToken');
+    setUserData(null);
     // Close mobile menu if open
     if (isOpen) setIsOpen(false);
+  };
+
+  // Function to get the active user (from context or localStorage)
+  const getActiveUser = () => {
+    if (user) return user;
+    
+    if (typeof window !== 'undefined') {
+      const storedData = localStorage.getItem('userData');
+      if (storedData) return JSON.parse(storedData);
+    }
+    
+    return null;
   };
 
   return (
@@ -79,10 +105,7 @@ export const Header = () => {
             
             {/* User Profile or Login Button */}
             {(() => {
-              // Check cookies for user data since context might not be updated yet
-              const userData = Cookies.get("userData");
-              const parsedUser = userData ? JSON.parse(userData) : null;
-              const activeUser = user || localUser || parsedUser;
+              const activeUser = getActiveUser();
               
               if (activeUser) {
                 return (
@@ -160,7 +183,7 @@ export const Header = () => {
             scrolled ? "bg-black/40 backdrop-blur-md" : "bg-black/70 backdrop-blur-lg"
           }`}
         >
-          {/* Mobile navigation content */}
+          {/* Mobile navigation content - same pattern as above but with modified getActiveUser function */}
           <div className="flex flex-col space-y-3">
             <div className="relative">
               <input
@@ -176,9 +199,7 @@ export const Header = () => {
             
             {/* Mobile User Profile or Login Button */}
             {(() => {
-              const userData = Cookies.get("userData");
-              const parsedUser = userData ? JSON.parse(userData) : null;
-              const activeUser = user || localUser || parsedUser;
+              const activeUser = getActiveUser();
               
               if (activeUser) {
                 return (
