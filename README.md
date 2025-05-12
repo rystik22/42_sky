@@ -40,8 +40,8 @@ An elegant event management system built specifically for 42 Abu Dhabi, providin
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sky42.git
-cd sky42
+git clone https://github.com/rystik22/42_sky.git
+cd 42_sky
 ```
 
 2. Install dependencies:
@@ -52,7 +52,7 @@ yarn install
 ```
 
 3. Set up environment variables:
-- Create a `.env.local` file based on `.env.example`
+- Create a `.env.local` file based on `env.example`
 - Add your 42 API credentials and other configuration details
 
 4. Run the development server:
