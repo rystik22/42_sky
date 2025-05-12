@@ -1,7 +1,5 @@
 # SKY_42
 
-![SKY_42 Logo](public/images/logo.png)
-
 An elegant event management system built specifically for 42 Abu Dhabi, providing a seamless experience for event discovery, management, and participation.
 
 ## 🌟 Features
@@ -23,7 +21,7 @@ An elegant event management system built specifically for 42 Abu Dhabi, providin
 ## 📸 Screenshots
 
 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-  <img src="public/images/screenshots/landing-page.png" alt="Landing Page" width="48%">
+  <img src="public/screenshots/landing-page.png" alt="Landing Page" width="48%">
   <img src="public/images/screenshots/event-details.png" alt="Event Details" width="48%">
 </div>
 <div style="display: flex; justify-content: space-between;">
@@ -116,17 +114,9 @@ sky42/
 │   └── sample_events.csv # Sample CSV for bulk upload
 └── styles/             # Global styles
 ```
+## 🌐 Live Website
 
-## 🛠️ Built With
-
-- [Next.js](https://nextjs.org/) - React framework
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [NextAuth.js](https://next-auth.js.org/) - Authentication
-- [React Query](https://tanstack.com/query/latest) - Data fetching
-- [Prisma](https://www.prisma.io/) - Database ORM
-- [CSV-Parse](https://csv.js.org/parse/) - CSV parsing for bulk uploads
-
+Visit our application: [42SKY](https://42sky.vercel.app)
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -140,9 +130,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgements
-
-- 42 Abu Dhabi for the opportunity to develop this project
-- All contributors who participated in this competition
-- The Next.js team for their excellent framework
